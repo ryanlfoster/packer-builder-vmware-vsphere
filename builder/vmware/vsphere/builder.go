@@ -3,11 +3,13 @@ package vsphere
 import (
 	"errors"
 	"fmt"
+	"net/url"
 
 	"github.com/mitchellh/multistep"
 	vmwcommon "github.com/mitchellh/packer/builder/vmware/common"
 	"github.com/mitchellh/packer/common"
 	"github.com/mitchellh/packer/packer"
+	"github.com/vmware/govmomi"
 )
 
 type Builder struct {
@@ -26,14 +28,18 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 }
 
 func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packer.Artifact, error) {
-	driver, err := vmwcommon.NewDriver(&b.config.DriverConfig, &b.config.SSHConfig)
+	parsedURL, err := url.Parse(b.config.VSphereURL)
 	if err != nil {
-		return nil, fmt.Errorf("Failed creating VMware driver: %s", err)
+		return nil, fmt.Errorf("Failed to parse vSphere URL: %s", err)
+	}
+	client, err := govmomi.NewClient(nil, parsedURL, true)
+	if err != nil {
+		return nil, fmt.Errorf("Failed creating vSphere client: %s", err)
 	}
 
 	state := &multistep.BasicStateBag{}
 	state.Put("config", b.config)
-	state.Put("driver", driver)
+	state.Put("client", client)
 	state.Put("hook", hook)
 	state.Put("ui", ui)
 

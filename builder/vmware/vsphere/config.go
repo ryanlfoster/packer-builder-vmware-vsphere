@@ -15,6 +15,8 @@ type Config struct {
 	vmwcommon.SSHConfig      `mapstructure:",squash"`
 	vmwcommon.ToolsConfig    `mapstructure:",squash"`
 	vmwcommon.VMXConfig      `mapstructure:",squash"`
+
+	VSphereURL string `mapstructure:"vsphere_url"`
 }
 
 func NewConfig(raws ...interface{}) (*Config, []string, error) {
